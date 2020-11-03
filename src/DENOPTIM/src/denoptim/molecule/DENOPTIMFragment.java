@@ -130,9 +130,7 @@ public class DENOPTIMFragment extends DENOPTIMVertex
 	/**
 	 * Molecular representation of this fragment
 	 */
-	// cannot serialize right now: 
-	//     class org.openscience.cdk.Atom declares multiple JSON fields named identifier
-	private transient IAtomContainer mol;
+	private IAtomContainer mol;
 
 //-----------------------------------------------------------------------------
 

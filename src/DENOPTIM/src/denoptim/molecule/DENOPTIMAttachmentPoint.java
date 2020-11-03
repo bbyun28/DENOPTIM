@@ -91,7 +91,7 @@ public class DENOPTIMAttachmentPoint implements Serializable, Cloneable
     /**
      * The vertex to which this AP is attached to.
      */
-    private transient DENOPTIMVertex owner;
+    private DENOPTIMVertex owner;
 
 
 //------------------------------------------------------------------------------

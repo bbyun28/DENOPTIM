@@ -45,7 +45,6 @@ import org.openscience.cdk.interfaces.IAtomContainer;
 import java.lang.reflect.Type;
 
 import com.google.gson.*;
-//import com.google.gson.GsonBuilder;
 
 
 /**
@@ -54,7 +53,7 @@ import com.google.gson.*;
  * @author Marco Foscato
  */
 public class DENOPTIMGraph implements Serializable, Cloneable
-{
+{  
     ArrayList<DENOPTIMVertex> gVertices;
     ArrayList<DENOPTIMEdge> gEdges;
     ArrayList<DENOPTIMRing> gRings;
@@ -72,7 +71,6 @@ public class DENOPTIMGraph implements Serializable, Cloneable
     ArrayList<SymmetricSet> symVertices;
     
     String localMsg;
-
 
 //------------------------------------------------------------------------------
 
@@ -725,52 +723,54 @@ public class DENOPTIMGraph implements Serializable, Cloneable
     }
 
 //------------------------------------------------------------------------------
-
+    // 
     public void toJson()
     {
       Gson gson = new GsonBuilder()
         .registerTypeAdapter(DENOPTIMGraph.class, new DENOPTIMGraphSerializer())
+        .setExclusionStrategies(new DENOPTIMExclusionStrategy())
         // optionally enable overrides for the sub-units here
-        // right now, try to use transient instead
+        // right now, try to use strategy instead
         //.registerTypeAdapter(DENOPTIMFragment.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
         //.registerTypeAdapter(DENOPTIMTemplate.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
         .setPrettyPrinting()
         .create();
+    
       String jsonOutput = gson.toJson(this);
       System.out.println(jsonOutput);
     }
-
+    
     @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder(512);
-        
+    
         sb.append(graphId).append(" ");
-
+    
         for (int i=0; i<gVertices.size(); i++)
         {
             sb.append(gVertices.get(i).toString()).append(",");
         }
-
+    
         sb.append(" ");
-
+    
         for (int i=0; i<gEdges.size(); i++)
         {
             sb.append(gEdges.get(i).toString()).append(",");
         }
-
+    
         sb.append(" ");
-
+    
         for (int i=0; i<gRings.size(); i++)
         {
             sb.append(gRings.get(i).toString()).append(" ");
         }
-
+    
         for (int i=0; i<symVertices.size(); i++)
         {
             sb.append(symVertices.get(i).toString()).append(" ");
         }
-        
+    
         return sb.toString();
     }
 
@@ -3153,19 +3153,49 @@ public class DENOPTIMGraph implements Serializable, Cloneable
         return mutableSites;
     }
     
-    public static class DENOPTIMGraphSerializer implements JsonSerializer<DENOPTIMGraph> {
+//------------------------------------------------------------------------------
+    
+    
+    
 
-        @Override
-        public JsonElement serialize(DENOPTIMGraph g, Type typeOfSrc, JsonSerializationContext context) {
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("graphId", g.graphId);
-            jsonObject.add("gVertices", context.serialize(g.gVertices));
-            jsonObject.add("gEdges", context.serialize(g.gEdges));
-            jsonObject.add("gRings", context.serialize(g.gRings));
-            jsonObject.add("symVertices", context.serialize(g.symVertices));
-            return jsonObject;
+
+
+private static class DENOPTIMGraphSerializer implements JsonSerializer<DENOPTIMGraph> 
+{
+
+    @Override
+    public JsonElement serialize(DENOPTIMGraph g, Type typeOfSrc, JsonSerializationContext context) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("graphId", g.graphId);
+        jsonObject.add("gVertices", context.serialize(g.gVertices));
+        jsonObject.add("gEdges", context.serialize(g.gEdges));
+        jsonObject.add("gRings", context.serialize(g.gRings));
+        jsonObject.add("symVertices", context.serialize(g.symVertices));
+        return jsonObject;
+    }
+}
+
+private static class DENOPTIMExclusionStrategy implements ExclusionStrategy 
+{
+    @Override
+    public boolean shouldSkipField(FieldAttributes field) {
+      // cannot serialize right now: 
+      //     class org.openscience.cdk.Atom declares multiple JSON fields named identifier
+        if (field.getDeclaringClass() == DENOPTIMFragment.class && field.getName().equals("mol")) {
+            return true;
         }
+        if (field.getDeclaringClass() == DENOPTIMAttachmentPoint.class && field.getName().equals("owner")) {
+            return true;
+        }
+        if (field.getDeclaringClass() == DENOPTIMVertex.class && field.getName().equals("owner")) {
+            return true;
+        }
+        return false;
     }
 
-    
+    @Override
+    public boolean shouldSkipClass(Class<?> clazz) { return false; }
+
+}
+
 }

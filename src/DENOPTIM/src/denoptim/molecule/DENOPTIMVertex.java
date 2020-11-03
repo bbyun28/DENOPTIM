@@ -64,7 +64,7 @@ public abstract class DENOPTIMVertex implements Cloneable, Serializable
     /**
      * Graph that includes this vertex
      */
-    private transient DENOPTIMGraph owner;
+    private DENOPTIMGraph owner;
 
     /**
      * Unique identifier associated with the vertex instance
