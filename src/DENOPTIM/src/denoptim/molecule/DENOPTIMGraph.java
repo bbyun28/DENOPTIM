@@ -41,6 +41,9 @@ import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
+import com.google.gson.Gson;
+//import com.google.gson.GsonBuilder;
+
 
 /**
  * Container for the list of vertices and the edges that connect them
@@ -720,9 +723,19 @@ public class DENOPTIMGraph implements Serializable, Cloneable
 
 //------------------------------------------------------------------------------
 
+    public void toJson()
+    {
+      //Gson gson = new GsonBuilder().setPrettyPrinting().create();
+      Gson gson = new Gson();
+      String jsonOutput = gson.toJson(this);
+      System.out.println(jsonOutput);
+    }
+
     @Override
     public String toString()
     {
+        this.toJson();
+      
         StringBuilder sb = new StringBuilder(512);
         
         sb.append(graphId).append(" ");
