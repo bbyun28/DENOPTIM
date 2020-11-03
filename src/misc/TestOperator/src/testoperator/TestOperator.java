@@ -88,6 +88,9 @@ public class TestOperator
                                        TestOperatorParameters.inpFileM).get(0)
                                          .getProperty("GraphENC").toString());
     
+        System.out.println("Initial json: ");
+        g.toJson();
+        System.out.println();
         System.out.println("Initial graphs: ");
         System.out.println(g);
         System.out.println(" ");

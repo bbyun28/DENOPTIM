@@ -41,7 +41,10 @@ import org.openscience.cdk.graph.ConnectivityChecker;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 
-import com.google.gson.Gson;
+
+import java.lang.reflect.Type;
+
+import com.google.gson.*;
 //import com.google.gson.GsonBuilder;
 
 
@@ -725,8 +728,14 @@ public class DENOPTIMGraph implements Serializable, Cloneable
 
     public void toJson()
     {
-      //Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      Gson gson = new Gson();
+      Gson gson = new GsonBuilder()
+        .registerTypeAdapter(DENOPTIMGraph.class, new DENOPTIMGraphSerializer())
+        // optionally enable overrides for the sub-units here
+        // right now, try to use transient instead
+        //.registerTypeAdapter(DENOPTIMFragment.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
+        //.registerTypeAdapter(DENOPTIMTemplate.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
+        .setPrettyPrinting()
+        .create();
       String jsonOutput = gson.toJson(this);
       System.out.println(jsonOutput);
     }
@@ -734,8 +743,6 @@ public class DENOPTIMGraph implements Serializable, Cloneable
     @Override
     public String toString()
     {
-        this.toJson();
-      
         StringBuilder sb = new StringBuilder(512);
         
         sb.append(graphId).append(" ");
@@ -3145,4 +3152,20 @@ public class DENOPTIMGraph implements Serializable, Cloneable
         }
         return mutableSites;
     }
+    
+    public static class DENOPTIMGraphSerializer implements JsonSerializer<DENOPTIMGraph> {
+
+        @Override
+        public JsonElement serialize(DENOPTIMGraph g, Type typeOfSrc, JsonSerializationContext context) {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("graphId", g.graphId);
+            jsonObject.add("gVertices", context.serialize(g.gVertices));
+            jsonObject.add("gEdges", context.serialize(g.gEdges));
+            jsonObject.add("gRings", context.serialize(g.gRings));
+            jsonObject.add("symVertices", context.serialize(g.symVertices));
+            return jsonObject;
+        }
+    }
+
+    
 }
