@@ -89,7 +89,20 @@ public class TestOperator
                                          .getProperty("GraphENC").toString());
     
         System.out.println("Initial json: ");
-        g.toJson();
+        String json1 = g.toJson();
+        System.out.println(json1);
+        DENOPTIMGraph g2 = DENOPTIMGraph.fromJson(json1);
+        String json2 = g2.toJson();
+        System.out.println(json2);
+        if (json1.equals(json2)) 
+        {
+          System.out.println("MATCH");
+        }
+        else
+        {
+          System.out.println("NOMATCH");
+        }
+        
         System.out.println();
         System.out.println("Initial graphs: ");
         System.out.println(g);

@@ -749,20 +749,32 @@ public class DENOPTIMGraph implements Serializable, Cloneable
 
 //------------------------------------------------------------------------------
     // 
-    public void toJson()
+    public String toJson()
     {
       Gson gson = new GsonBuilder()
         .registerTypeAdapter(DENOPTIMGraph.class, new DENOPTIMGraphSerializer())
         .setExclusionStrategies(new DENOPTIMExclusionStrategy())
-        // optionally enable overrides for the sub-units here
-        // right now, try to use strategy instead
-        //.registerTypeAdapter(DENOPTIMFragment.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
-        //.registerTypeAdapter(DENOPTIMTemplate.class, new DENOPTIMVertex.DENOPTIMVertexSerializer())
+        // Custom deserializer to dispatch to the correct subclass of Vertex
+        .registerTypeAdapter(DENOPTIMVertex.class, new DENOPTIMVertexDeserializer())
         .setPrettyPrinting()
         .create();
     
       String jsonOutput = gson.toJson(this);
-      System.out.println(jsonOutput);
+      return jsonOutput;
+    }
+    
+    public static DENOPTIMGraph fromJson(String json)
+    {
+      Gson gson = new GsonBuilder()
+        .registerTypeAdapter(DENOPTIMGraph.class, new DENOPTIMGraphSerializer())
+        .setExclusionStrategies(new DENOPTIMExclusionStrategy())
+        // Custom deserializer to dispatch to the correct subclass of Vertex
+        .registerTypeAdapter(DENOPTIMVertex.class, new DENOPTIMVertexDeserializer())
+        .setPrettyPrinting()
+        .create();
+      
+      DENOPTIMGraph graph = gson.fromJson(json, DENOPTIMGraph.class);
+      return graph;
     }
     
     @Override
@@ -3175,6 +3187,25 @@ private static class DENOPTIMExclusionStrategy implements ExclusionStrategy
     @Override
     public boolean shouldSkipClass(Class<?> clazz) { return false; }
 
+}
+
+private static class DENOPTIMVertexDeserializer implements JsonDeserializer<DENOPTIMVertex> {
+  public DENOPTIMVertex deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+      throws JsonParseException {
+        
+    JsonObject jsonObject = json.getAsJsonObject();
+    
+    if (jsonObject.has("interiorGraph")) 
+    {
+      System.out.println("DESERIALIZE TMPL");
+      return context.deserialize(jsonObject, DENOPTIMTemplate.class);
+    }
+    else 
+    {
+      System.out.println("DESERIALIZE FRAG");
+      return context.deserialize(jsonObject, DENOPTIMFragment.class);
+    }
+  }
 }
 
 }
