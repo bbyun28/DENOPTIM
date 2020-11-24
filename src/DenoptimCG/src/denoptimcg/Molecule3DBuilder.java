@@ -41,6 +41,7 @@ import denoptim.constants.DENOPTIMConstants;
 import denoptim.exception.DENOPTIMException;
 import denoptim.integration.tinker.TinkerAtom;
 import denoptim.integration.tinker.TinkerMolecule;
+import denoptim.molecule.APClass;
 import denoptim.molecule.DENOPTIMEdge;
 import denoptim.molecule.DENOPTIMEdge.BondType;
 import denoptim.molecule.DENOPTIMGraph;
@@ -128,12 +129,6 @@ public class Molecule3DBuilder
      */
     private double atmOveralScore = Double.NaN;
 
-    /**
-     * Variable needed by recursions
-     */
-    private int rec = 0;
-    private int maxLng = 0;
-
 
 //------------------------------------------------------------------------------
 
@@ -187,7 +182,6 @@ public class Molecule3DBuilder
         this.attractors = attractors;
         this.attToAtmID = attToAtmID;
         this.allRCACombs = allRCACombs;
-        this.mapDRingsRCACombs = mapDRingsRCACombs;
         this.rotatableBnds = rotatableBnds;
         this.molName = molName;
         this.newRingClosures = ringClosures;
@@ -256,7 +250,7 @@ public class Molecule3DBuilder
         // Assign the class of the related attachment point to each RCA
         for (RingClosingAttractor rca : attractors)
         {
-            String apclass = getClassFromAttractor(rca);
+            APClass apclass = getClassFromAttractor(rca);
             rca.setApClass(apclass);
         }
 
@@ -324,16 +318,16 @@ public class Molecule3DBuilder
 
 //------------------------------------------------------------------------------
 
-    private String getClassFromAttractor(RingClosingAttractor rca)
+    private APClass getClassFromAttractor(RingClosingAttractor rca)
     {
-        String cls = null;
+        APClass cls = null;
         IAtom atm = rca.getIAtom();
         int i = fmol.getAtomNumber(atm) + 1;
         TinkerAtom tatm = tmol.getAtom(i);
         int vtxId = tatm.getVertexId();
         int edgeId = molGraph.getIndexOfEdgeWithParent(vtxId);
         DENOPTIMEdge edge = molGraph.getEdgeAtPosition(edgeId);
-        cls = edge.getSrcApClass();
+        cls = edge.getSrcAPClass();
         return cls;
     }
 
@@ -821,12 +815,11 @@ public class Molecule3DBuilder
             int ioatm = this.getAtmIdOfRCA(oRca);
             IAtom atm = nFMol.getAtom(ioatm);
             RingClosingAttractor nRca = new RingClosingAttractor(atm,nFMol);
-            String cls = null;
             TinkerAtom nTa = nTMol.getAtom(ioatm+1);
             int vtxId = nTa.getVertexId();
             int edgeId = nMolGraph.getIndexOfEdgeWithParent(vtxId);
             DENOPTIMEdge edge = nMolGraph.getEdgeAtPosition(edgeId);
-            cls = edge.getSrcApClass();
+            APClass cls = edge.getSrcAPClass();
             nRca.setApClass(cls);
             nAttractors.add(nRca);
             nAttToAtmID.put(nRca,ioatm);

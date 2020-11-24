@@ -31,6 +31,7 @@ import denoptim.exception.DENOPTIMException;
 import denoptim.fragspace.FragmentSpace;
 import denoptim.fragspace.IdFragmentAndAP;
 import denoptim.logging.DENOPTIMLogger;
+import denoptim.molecule.APClass;
 import denoptim.molecule.DENOPTIMAttachmentPoint;
 import denoptim.molecule.DENOPTIMEdge;
 import denoptim.molecule.DENOPTIMEdge.BondType;
@@ -150,42 +151,19 @@ public class DENOPTIMGraphOperations
      */
     private static boolean isCrossoverPossible(DENOPTIMEdge eA, DENOPTIMEdge eB)
     {
-        String apClassSrcA = eA.getSrcApClass();
-        String apClassTrgA = eA.getTrgApClass();
-        String apClassSrcB = eB.getSrcApClass();
-        String apClassTrgB = eB.getTrgApClass();
+        APClass apClassSrcA = eA.getSrcAPClass();
+        APClass apClassTrgA = eA.getTrgAPClass();
+        APClass apClassSrcB = eB.getSrcAPClass();
+        APClass apClassTrgB = eB.getTrgAPClass();
         
-        if (isCompatible(apClassSrcA, apClassTrgB))
+        if (apClassSrcA.isCPMapCompatibleWith(apClassTrgB))
         {
-            if (isCompatible(apClassSrcB, apClassTrgA))
+            if (apClassSrcB.isCPMapCompatibleWith(apClassTrgA))
             {
                 return true;
             }
         }
         return false;
-    }
-
-//------------------------------------------------------------------------------
-
-    /**
-     * Check the compatibility between two classes. Note that, due to the non 
-     * symmetric nature of the compatibility matrix, the result for
-     * isCompatible(A,B) may be different from isCompatible(B,A)
-     * @param parentAPclass class of the attachment point (AP) on the parent
-     * vertex (inner level)
-     * @param childAPclass class of the attachment point (AP) on the child
-     * vertex (outer level)
-     * @return <code>true</code> if the combination corresponds to a true entry
-     * in the compatibility matrix meaning that the two classes, in the 
-     * specified order, are compatible
-     */
-
-    private static boolean isCompatible(String parentAPclass, 
-                                                          String childAPclass)
-    {
-        ArrayList<String> compatibleClasses = 
-                    FragmentSpace.getCompatibilityMatrix().get(parentAPclass);
-        return compatibleClasses.contains(childAPclass);
     }
 
 //------------------------------------------------------------------------------
@@ -323,8 +301,6 @@ public class DENOPTIMGraphOperations
             System.err.println("     Grap: "+ molGraph);
         }
 
-        MersenneTwister mtrand = RandomUtils.getRNG();
-
         ArrayList<Integer> addedVertices = new ArrayList<>();
 
         ArrayList<DENOPTIMAttachmentPoint> lstDaps = 
@@ -334,7 +310,7 @@ public class DENOPTIMGraphOperations
             if (debug)
             {
                 System.err.println("Evaluating growth on AP-" + apId + " of "
-                                                         + "vertex "+ curVrtId);
+                        + "vertex "+ curVrtId);
             }
 
             DENOPTIMAttachmentPoint curDap = lstDaps.get(apId);
@@ -564,16 +540,15 @@ public class DENOPTIMGraphOperations
         else
         {
             int fapidx = chosenFrgAndAp.getApId();
-            String rcn = curDap.getAPClass(); //on the src
-            String cmpReac = fragVertex.getAttachmentPoints().get(fapidx).getAPClass();
+            APClass srcAPC = curDap.getAPClass();
+            APClass trgAPC = fragVertex.getAttachmentPoints().get(fapidx).getAPClass();
 
             edge = curVertex.connectVertices(
                     fragVertex,
                     dapIdx,
                     fapidx,
-                    rcn,
-                    cmpReac
-            );
+                    srcAPC,
+                    trgAPC);
         }
 
         if (edge != null)
@@ -709,13 +684,13 @@ if(debug)
     System.out.println("Before update: "+molGraph.getClosableChains().size());
                     // update list of candidate closable chains
                     molGraph.getClosableChains().removeAll(
-                                                chosenFfCc.getIncompatibleCC());
+                            chosenFfCc.getIncompatibleCC());
 //TODO del
 if(debug)
     System.out.println("After update: "+molGraph.getClosableChains().size());
 
                     if (applySymmetry(curVertex.getAttachmentPoints().get(
-                                                          dapidx).getAPClass()))
+                            dapidx).getAPClass()))
                     {
 //TODO
 //TODO: implement symmetric substitution with closability bias
@@ -961,8 +936,8 @@ if(debug)
                                              curVertex.getVertexId()));
             int prntId = parent.getMolId();
             BBType prntTyp = parent.getFragmentType();
-            int prntAp = edge.getSrcApIndex();
-            int chidAp = edge.getTrgApIndex();
+            int prntAp = edge.getSrcAPID();
+            int chidAp = edge.getTrgAPID();
             for (ClosableChain cc : molGraph.getClosableChains())
             {
 //TODO del 
@@ -1271,10 +1246,10 @@ if(debug)
         int eidxF = female.getIndexOfEdgeWithParent(fvid);
         DENOPTIMEdge eM = male.getEdgeAtPosition(eidxM);
         DENOPTIMEdge eF = female.getEdgeAtPosition(eidxF);
-        int apidxMP = eM.getSrcApIndex(); // ap index of the male parent
-        int apidxMC = eM.getTrgApIndex(); // ap index of the male
-        int apidxFC = eF.getTrgApIndex(); // ap index of the female
-        int apidxFP = eF.getSrcApIndex(); // ap index of the female parent
+        int apidxMP = eM.getSrcAPID(); // ap index of the male parent
+        int apidxMC = eM.getTrgAPID(); // ap index of the male
+        int apidxFC = eF.getTrgAPID(); // ap index of the female
+        int apidxFP = eF.getSrcAPID(); // ap index of the female parent
         BondType bndOrder = eM.getBondType();
 
         if(debug)
@@ -1315,7 +1290,7 @@ if(debug)
             DENOPTIMEdge se = male.getEdgeWithParent(svid);
             DENOPTIMVertex spv = male.getParent(svid);
             symParVertM.add(spv);
-            symmParAPidxM.add(se.getSrcApIndex());
+            symmParAPidxM.add(se.getSrcAPID());
             toRemoveFromM.add(svid);
         }
         for (Integer svid : toRemoveFromM)
@@ -1348,7 +1323,7 @@ if(debug)
             DENOPTIMEdge se = female.getEdgeWithParent(svid);
             DENOPTIMVertex spv = female.getParent(svid);
             symParVertF.add(spv);
-            symmParAPidxF.add(se.getSrcApIndex());
+            symmParAPidxF.add(se.getSrcAPID());
             toRemoveFromF.add(svid);
         }
         for (Integer svid : toRemoveFromF)
@@ -1425,7 +1400,7 @@ if(debug)
      * @return <code>true</code> if symmetry is to be applied
      */
 
-    protected static boolean applySymmetry(String apClass)
+    protected static boolean applySymmetry(APClass apClass)
     {
         boolean r = false;
         if (FragmentSpace.imposeSymmetryOnAPsOfClass(apClass))

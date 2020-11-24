@@ -23,8 +23,10 @@ import java.io.Serializable;
 import org.openscience.cdk.interfaces.IBond;
 import org.openscience.cdk.interfaces.IBond.Order;
 
+import denoptim.exception.DENOPTIMException;
+
 /**
- * This class represents the edge between 2 fragments (vertices)
+ * This class represents the edge between two vertices.
  * @author Vishwesh Venkatraman
  * @author Marco Foscato
  */
@@ -33,12 +35,12 @@ public class DENOPTIMEdge implements Serializable,Cloneable
     /**
      * Attachment point at source end
      */
-    private DENOPTIMAttachmentPoint srcAp;
+    private DENOPTIMAttachmentPoint srcAP;
 
     /**
      * Attachment point at target end
      */
-    private DENOPTIMAttachmentPoint trgAp;
+    private DENOPTIMAttachmentPoint trgAP;
 
     /**
      * The vertex id of the source fragment
@@ -54,13 +56,13 @@ public class DENOPTIMEdge implements Serializable,Cloneable
      * the index of the attachment point in the list of DAPs associated
      * with the source fragment
      */
-    private final int srcApIndex;
+    private final int srcAPID;
     
     /**
      * the index of the attachment point in the list of DAPs associated
      * with the target fragment
      */
-    private final int trgApIndex;
+    private final int trgAPID;
 
     /**
      * The bond type associated with the connection between the fragments
@@ -70,77 +72,105 @@ public class DENOPTIMEdge implements Serializable,Cloneable
     /**
      * The class associated with the source AP
      */
-    private String srcApClass;
+    private APClass srcAPClass;
     
     /**
      * The class associated with the target AP
      */
-    private String trgApClass;
+    private APClass trgAPClass;
 
 //------------------------------------------------------------------------------
 
+    //TODO-V3 constructors for edge will change one ap-ownership is sorted out
     /**
      * Constructor for an edge
-     * @param srcAp attachment point at source end
-     * @param trgAp attachment point at target end
+     * @param srcAP attachment point at source end
+     * @param trgAP attachment point at target end
      */
-    public DENOPTIMEdge(DENOPTIMAttachmentPoint srcAp,
-                        DENOPTIMAttachmentPoint trgAp, int srcVertex,
-                        int trgVertex, int srcApIndex, int trgApIndex) {
-        this(srcAp, trgAp, srcVertex, trgVertex, srcApIndex, trgApIndex,
+    public DENOPTIMEdge(DENOPTIMAttachmentPoint srcAP,
+                        DENOPTIMAttachmentPoint trgAP, int srcVertex,
+                        int trgVertex, int srcAPID, int trgAPID) {
+        this(srcAP, trgAP, srcVertex, trgVertex, srcAPID, trgAPID,
                 BondType.SINGLE);
     }
 
 //------------------------------------------------------------------------------
-
-    public DENOPTIMEdge(DENOPTIMAttachmentPoint srcAp,
-                        DENOPTIMAttachmentPoint trgAp, int srcVertex,
-                        int trgVertex, int srcApIndex, int trgApIndex,
+    //TODO-V3 constructors for edge will change one ap-ownership is sorted out
+    //TODO-V3 remove
+    @Deprecated
+    public DENOPTIMEdge(DENOPTIMAttachmentPoint srcAP,
+                        DENOPTIMAttachmentPoint trgAP, int srcVertex,
+                        int trgVertex, int srcAPID, int trgAPID,
                         BondType bondType)
     {
-        this(srcVertex, trgVertex, srcApIndex, trgApIndex, bondType, "", "");
-        this.srcAp = srcAp;
-        this.trgAp = trgAp;
+        this(srcAP, trgAP, srcVertex, trgVertex, srcAPID, trgAPID, bondType,
+                "", "");
     }
 
 //------------------------------------------------------------------------------
-    
+   
     /**
      * Constructor for an edge from all parameters
      * @param srcVertex vertex ID of the source vertex
      * @param trgVertex vertex ID of the target vertex
-     * @param srcApIndex index of the AP on the source vertex
-     * @param trgApIndex index of the AP on the target vertex
-     * @param bondType the bond type
-     */
-    public DENOPTIMEdge(int srcVertex, int trgVertex, int srcApIndex, int trgApIndex,
-            BondType bondType)
-    {
-        this(srcVertex, trgVertex, srcApIndex, trgApIndex, bondType, "", "");
-    }
-    
-//------------------------------------------------------------------------------
-    
-    /**
-     * Constructor for an edge from all parameters
-     * @param srcVertex vertex ID of the source vertex
-     * @param trgVertex vertex ID of the target vertex
-     * @param srcApIndex index of the AP on the source vertex
-     * @param trgApIndex index of the AP on the target vertex
+     * @param srcAPID index of the AP on the source vertex
+     * @param trgAPID index of the AP on the target vertex
      * @param bondType the bond type
      * @param m_srcAPClass the AP class on the source attachment point
      * @param m_trgAPClass the AP class on the target attachment point
      */
-    public DENOPTIMEdge(int srcVertex, int trgVertex, int srcApIndex, int trgApIndex,
-            BondType bondType, String m_srcAPClass, String m_trgAPClass)
+    //TODO-V3 constructors for edge will change one ap-ownership is sorted out
+    //TODO-V3 remove string-based APClass arguments
+    @Deprecated
+    public DENOPTIMEdge(DENOPTIMAttachmentPoint srcAP,
+                        DENOPTIMAttachmentPoint trgAP, int srcVertex,
+                        int trgVertex, int srcAPID, int trgAPID,
+                        BondType bondType, String m_srcAPClass,
+                        String m_trgAPClass) {
+        this.srcAP = srcAP;
+        this.trgAP = trgAP;
+
+        this.srcVertex = srcVertex;
+        this.trgVertex = trgVertex;
+        this.srcAPID = srcAPID;
+        this.trgAPID = trgAPID;
+        this.bondType = bondType;
+        try
+        {
+            this.srcAPClass = APClass.make(m_srcAPClass);
+            this.trgAPClass = APClass.make(m_trgAPClass);
+        } catch (DENOPTIMException e)
+        {
+            e.printStackTrace();
+            System.out.println("ERROR in deprecated method. Avoid calling this "
+                    + "method.");
+        }
+    }
+    
+//------------------------------------------------------------------------------
+
+    /**
+     * Constructor for an edge from all parameters
+     * @param srcVertex vertex ID of the source vertex
+     * @param trgVertex vertex ID of the target vertex
+     * @param srcAPID index of the AP on the source vertex
+     * @param trgAPID index of the AP on the target vertex
+     * @param bondType the bond type
+     * @param srcAPClass the AP class on the source attachment point
+     * @param trgAPClass the AP class on the target attachment point
+     */
+    //TODO-V3 constructors for edge will change one ap-ownership is sorted out
+    public DENOPTIMEdge(int srcVertex, int trgVertex, int srcAPID, int trgAPID,
+                        BondType bondType, APClass srcAPClass, 
+                        APClass trgAPClass)
     {
         this.srcVertex = srcVertex;
         this.trgVertex = trgVertex;
-        this.srcApIndex = srcApIndex;
-        this.trgApIndex = trgApIndex;
+        this.srcAPID = srcAPID;
+        this.trgAPID = trgAPID;
         this.bondType = bondType;
-        this.srcApClass = m_srcAPClass;
-        this.trgApClass = m_trgAPClass;
+        this.srcAPClass = srcAPClass;
+        this.trgAPClass = trgAPClass;
     }
     
 //------------------------------------------------------------------------------
@@ -166,16 +196,16 @@ public class DENOPTIMEdge implements Serializable,Cloneable
     
 //------------------------------------------------------------------------------
 
-    public int getSrcApIndex()
+    public int getSrcAPID()
     {
-        return srcApIndex;
+        return srcAPID;
     }
     
 //------------------------------------------------------------------------------
 
-    public int getTrgApIndex()
+    public int getTrgAPID()
     {
-        return trgApIndex;
+        return trgAPID;
     }        
 
 //------------------------------------------------------------------------------
@@ -187,30 +217,30 @@ public class DENOPTIMEdge implements Serializable,Cloneable
     
 //------------------------------------------------------------------------------
     
-    public String getSrcApClass()
+    public APClass getSrcAPClass()
     {
-        return srcApClass;
+        return srcAPClass;
     }
     
 //------------------------------------------------------------------------------
     
-    public String getTrgApClass()
+    public APClass getTrgAPClass()
     {
-        return trgApClass;
+        return trgAPClass;
     }    
     
 //------------------------------------------------------------------------------
     
-    public void setSrcApClass(String m_rcn)
+    public void setSrcAPClass(APClass apc)
     {
-        srcApClass = m_rcn;
+        srcAPClass = apc;
     }
     
 //------------------------------------------------------------------------------
     
-    public void setTrgApClass(String m_rcn)
+    public void setTrgAPClass(APClass apc)
     {
-        trgApClass = m_rcn;
+        trgAPClass = apc;
     }    
     
 
@@ -224,13 +254,16 @@ public class DENOPTIMEdge implements Serializable,Cloneable
 //------------------------------------------------------------------------------
     
     /**
-     * Return a deep-copy
+     * Return a deep-copy. Note that APClasses are not deep-copies at all!
      * @return a deep copy
      */
     public DENOPTIMEdge clone()
     {
-        return new DENOPTIMEdge(srcVertex, trgVertex, srcApIndex, trgApIndex,
-                bondType, srcApClass, trgApClass);
+        DENOPTIMEdge c = new DENOPTIMEdge(srcAP, trgAP, srcVertex, trgVertex, srcAPID,
+                trgAPID, bondType);
+        c.srcAPClass = srcAPClass;
+        c.trgAPClass = trgAPClass;
+        return c;
     }
     
 //------------------------------------------------------------------------------
@@ -245,30 +278,30 @@ public class DENOPTIMEdge implements Serializable,Cloneable
      */
     public boolean sameAs(DENOPTIMEdge other, StringBuilder reason)
     {
-    	if (this.getSrcApIndex() != other.getSrcApIndex())
+    	if (this.getSrcAPID() != other.getSrcAPID())
     	{
-    		reason.append("Different source atom ("+this.getSrcApIndex()+":"
-    						+other.getSrcApIndex()+"); ");
+    		reason.append("Different source atom ("+this.getSrcAPID()+":"
+    						+other.getSrcAPID()+"); ");
     		return false;
     	}
-    	if (this.getTrgApIndex() != other.getTrgApIndex())
+    	if (this.getTrgAPID() != other.getTrgAPID())
     	{
-    		reason.append("Different target atom ("+this.getTrgApIndex()+":"
-					+other.getTrgApIndex()+"); ");
+    		reason.append("Different target atom ("+this.getTrgAPID()+":"
+					+other.getTrgAPID()+"); ");
     		return false;
     	}
-    	if (!this.getSrcApClass().equals(other.getSrcApClass()))
+    	if (!this.getSrcAPClass().equals(other.getSrcAPClass()))
     	{
     		reason.append("Different source APClass ("
-    				+this.getSrcApClass()+":"
-					+other.getSrcApClass()+"); ");
+    				+this.getSrcAPClass()+":"
+					+other.getSrcAPClass()+"); ");
     		return false;
     	}
-    	if (!this.getTrgApClass().equals(other.getTrgApClass()))
+    	if (!this.getTrgAPClass().equals(other.getTrgAPClass()))
     	{
     		reason.append("Different target APClass ("
-    				+this.getTrgApClass()+":"
-					+other.getTrgApClass()+"); ");
+    				+this.getTrgAPClass()+":"
+					+other.getTrgAPClass()+"); ");
     		return false;
     	}
     	if (this.getBondType() != (other.getBondType()))
@@ -286,11 +319,11 @@ public class DENOPTIMEdge implements Serializable,Cloneable
     public String toString()
     {
         StringBuilder sb = new StringBuilder(64);
-        sb.append(srcVertex).append("_").append(srcApIndex).append("_").
-                append(trgVertex).append("_").append(trgApIndex).append("_").
+        sb.append(srcVertex).append("_").append(srcAPID).append("_").
+                append(trgVertex).append("_").append(trgAPID).append("_").
                 append(bondType.toOldString());
-        if (srcApClass.length() > 0 && trgApClass.length() > 0)
-            sb.append("_").append(srcApClass).append("_").append(trgApClass);
+        if (srcAPClass!=null && trgAPClass!=null)
+            sb.append("_").append(srcAPClass).append("_").append(trgAPClass);
 
         return sb.toString();
     }
@@ -324,7 +357,7 @@ public class DENOPTIMEdge implements Serializable,Cloneable
             TRIPLE.valenceUsed = 3;
             QUADRUPLE.valenceUsed = 4;
 
-            //TODO del
+            //TODO-V3 del
             SINGLE.oldString = "1";
             DOUBLE.oldString = "2";
             TRIPLE.oldString = "3";

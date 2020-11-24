@@ -64,6 +64,7 @@ import denoptim.fragspace.FragmentSpace;
 import denoptim.fragspace.FragmentSpaceParameters;
 import denoptim.fragspace.IdFragmentAndAP;
 import denoptim.io.DenoptimIO;
+import denoptim.molecule.APClass;
 import denoptim.molecule.DENOPTIMAttachmentPoint;
 import denoptim.molecule.DENOPTIMEdge;
 import denoptim.molecule.DENOPTIMFragment;
@@ -1104,9 +1105,8 @@ public class GUIGraphHandler extends GUICardPanel
 			// Identify the source vertex/node and its AP
 			DENOPTIMVertex srcVertex = dnGraph.getVertexWithId(srcVertexId);
 				
-			String sCls = srcVertex.getAttachmentPoints().get(srcApId)
-						.getAPClass();
-			String tCls = trgVertex.getAttachmentPoints().get(trgApId).getAPClass();
+			APClass sCls = srcVertex.getAttachmentPoints().get(srcApId).getAPClass();
+			APClass tCls = trgVertex.getAttachmentPoints().get(trgApId).getAPClass();
 				
 			trgVertex.setLevel(srcVertex.getLevel() + 1);
 				
@@ -1498,10 +1498,10 @@ public class GUIGraphHandler extends GUICardPanel
 			String srcIdx = Integer.toString(dnE.getSrcVertex());
 			String trgIdx = Integer.toString(dnE.getTrgVertex());
 			Edge e = graph.addEdge(srcIdx+"-"+trgIdx, srcIdx, trgIdx,true);
-			e.setAttribute("dnp.srcAPId", dnE.getSrcApIndex());
-			e.setAttribute("dnp.trgAPId", dnE.getTrgApIndex());
-			e.setAttribute("dnp.srcAPClass", dnE.getSrcApClass());
-			e.setAttribute("dnp.trgAPClass", dnE.getTrgApClass());
+			e.setAttribute("dnp.srcAPId", dnE.getSrcAPID());
+			e.setAttribute("dnp.trgAPId", dnE.getTrgAPID());
+			e.setAttribute("dnp.srcAPClass", dnE.getSrcAPClass());
+			e.setAttribute("dnp.trgAPClass", dnE.getTrgAPClass());
 			e.setAttribute("dnp.bondType", dnE.getBondType());
 		}
 		 

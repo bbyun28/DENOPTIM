@@ -35,6 +35,7 @@ import denoptim.fragspace.FragsCombination;
 import denoptim.fragspace.IdFragmentAndAP;
 import denoptim.io.DenoptimIO;
 import denoptim.logging.DENOPTIMLogger;
+import denoptim.molecule.APClass;
 import denoptim.molecule.DENOPTIMAttachmentPoint;
 import denoptim.molecule.DENOPTIMEdge;
 import denoptim.molecule.DENOPTIMFragment.BBType;
@@ -230,7 +231,7 @@ public class GraphBuildingTask implements Callable
     {
         try
         {
-            this.nextIds = (ArrayList) nextIds.clone();
+            this.nextIds = (ArrayList<Integer>) nextIds.clone();
         }
         catch (Throwable t)
         {
@@ -298,7 +299,7 @@ public class GraphBuildingTask implements Callable
                 int sApId = srcAp.getApId();
                 DENOPTIMVertex srcVrtx = molGraph.getVertexWithId(sVId);
                 
-                String sCls = srcVrtx.getAttachmentPoints().get(
+                APClass sCls = srcVrtx.getAttachmentPoints().get(
                         sApId).getAPClass();
     
                 IdFragmentAndAP trgAp = fragsToAdd.get(srcAp);
@@ -307,8 +308,8 @@ public class GraphBuildingTask implements Callable
                 BBType tFTyp = trgAp.getVertexMolType(); 
                 int tApId = trgAp.getApId();
         
-                // type -1 is used to represent unused AP
-                if (tFTyp == BBType.NONE) 
+                // type "NONE" is used to represent unused AP
+                if (tFTyp == BBType.NONE || tFTyp == BBType.UNDEFINED)
                 {
                     continue;
                 }
@@ -338,11 +339,8 @@ public class GraphBuildingTask implements Callable
 
                 trgVrtx.setLevel(srcVrtx.getLevel() + 1);
                 
-                String tCls = trgVrtx.getAttachmentPoints().get(tApId).getAPClass();
-                
                 DENOPTIMEdge edge = srcVrtx.connectVertices(
-                        trgVrtx, sApId, tApId, sCls, tCls
-                );
+                        trgVrtx, sApId, tApId);
                 if (edge == null)
                 {
                     msg = "Unable to make new edge.";
